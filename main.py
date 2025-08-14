@@ -44,7 +44,8 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8443))
 
     async def set_webhook():
-        await application.bot.set_webhook(f"https://{RAILWAY_URL}/{BOT_TOKEN}")
+        await application.bot.set_webhook(f"{RAILWAY_URL}/{BOT_TOKEN}")
+
 
     asyncio.run(set_webhook())  # Webhook o‘rnatish
 
