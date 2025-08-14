@@ -24,7 +24,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")             # <-- Bot tokeningizni yozing
 ADMIN_ID = 5636501312                  # <-- O'zingizning Telegram user ID'ingiz
 USERS_FILE = Path("users.json")
 
-TWELVE_DATA_API_KEY = "9694c7ab6f53406f945981b7245a6a3e"  # <-- Twelve Data kalitingiz
+RAILWAY_URL = os.getenv("RAILWAY_URL")  # <-- Twelve Data kalitingiz
 NEWS_API_KEY = "23d297db82234c41b7d6bb1e349104bf"                # <-- (ixtiyoriy) NewsAPI.org kaliti; bo'sh bo'lsa yangilik filtri o'chadi
 
 # 10 ta instrument (foydalanuvchi tanlamaydi — bot o'zi tanlaydi)
@@ -487,7 +487,7 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ===================== BOOT =====================
 
 def main():
-    app = ApplicationBuilder().token(TOKEN).build()
+    app = ApplicationBuilder().token('8471322511:AAHPf0BkWLVZ8g7Y2Mh4BHHc2sQuENViG0c').build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("broadcast", broadcast))
     app.add_handler(CallbackQueryHandler(on_button))
