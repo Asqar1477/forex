@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+import os
 import json
 import logging
 import math
@@ -17,7 +19,8 @@ from telegram.ext import (
 )
 
 # ===================== CONFIG =====================
-TOKEN = "8471322511:AAHPf0BkWLVZ8g7Y2Mh4BHHc2sQuENViG0c"              # <-- Bot tokeningizni yozing
+load_dotenv()
+BOT_TOKEN = os.getenv("BOT_TOKEN")             # <-- Bot tokeningizni yozing
 ADMIN_ID = 5636501312                  # <-- O'zingizning Telegram user ID'ingiz
 USERS_FILE = Path("users.json")
 
