@@ -1,53 +1,43 @@
-from dotenv import load_dotenv
 import os
+import asyncio
 from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-import asyncio
 
-# .env dan ma'lumotlarni yuklaymiz
-load_dotenv()
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+TOKEN = os.getenv("BOT_TOKEN") or "BOT_TOKENINGNI_BU_YERGA_QO'Y"
+BASE_URL = "https://forex-production.up.railway.app"  # Railway URL
 
-# Flask va Telegram Application
 app = Flask(__name__)
-application = Application.builder().token(BOT_TOKEN).build()
+application = Application.builder().token(TOKEN).build()
 
-# /start komandasi
+# === Handlers ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Salom! Bot webhook orqali ishlayapti 🚀")
+    await update.message.reply_text("Salom! Webhook ishlayapti 🚀")
 
-# Oddiy echo handler
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(update.message.text)
 
-# Handlerlarni qo'shamiz
 application.add_handler(CommandHandler("start", start))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
-# Webhook endpoint (token URLga qo‘shilmaydi!)
-@app.route("/webhook", methods=["POST"])
+# === Webhook route ===
+@app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
-    data = request.get_json(force=True)
-    update = Update.de_json(data, application.bot)
-    asyncio.create_task(application.process_update(update))
+    update = Update.de_json(request.get_json(force=True), application.bot)
+    asyncio.get_event_loop().create_task(application.process_update(update))
     return "OK", 200
 
-# Tekshirish uchun home page
 @app.route("/", methods=["GET"])
 def home():
-    return "Bot ishlayapti 🚀", 200
+    return "Bot ishga tushdi ✅", 200
 
-# Webhook o‘rnatish funksiyasi
+# === Webhook o‘rnatish ===
 async def set_webhook():
-    BASE_URL = "https://forex-production.up.railway.app"
-    webhook_url = f"{BASE_URL}/webhook"
-    await application.bot.set_webhook(webhook_url)
-    print(f"Webhook o‘rnatildi: {webhook_url}")
+    url = f"{BASE_URL}/{TOKEN}"
+    await application.bot.set_webhook(url)
+    print(f"Webhook o‘rnatildi: {url}")
 
-# Asosiy ishga tushirish qismi
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(set_webhook())
+    asyncio.get_event_loop().run_until_complete(set_webhook())
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
