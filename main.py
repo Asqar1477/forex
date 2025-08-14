@@ -33,7 +33,8 @@ def home():
     return "Bot ishlayapti 🚀", 200
 
 async def set_webhook():
-    webhook_url = f"{RAILWAY_URL}/{BOT_TOKEN}"
+    BASE_URL = "https://forex-production.up.railway.app"
+    webhook_url = f"{BASE_URL}/{BOT_TOKEN}"
     await application.bot.set_webhook(webhook_url)
     print(f"Webhook o‘rnatildi: {webhook_url}")
 
