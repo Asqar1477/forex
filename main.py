@@ -1,43 +1,46 @@
 import os
-import asyncio
 from flask import Flask, request
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+import requests
 
-TOKEN = os.getenv("BOT_TOKEN") or "BOT_TOKENINGNI_BU_YERGA_QO'Y"
-BASE_URL = "https://forex-production.up.railway.app"  # Railway URL
+# === Config ===
+TOKEN = os.getenv("BOT_TOKEN", "8471322511:AAHPf0BkWLVZ8g7Y2Mh4BHHc2sQuENViG0c")
+BASE_URL = f"https://api.telegram.org/bot{TOKEN}"
 
 app = Flask(__name__)
-application = Application.builder().token(TOKEN).build()
-
-# === Handlers ===
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Salom! Webhook ishlayapti 🚀")
-
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(update.message.text)
-
-application.add_handler(CommandHandler("start", start))
-application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
 # === Webhook route ===
 @app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
-    update = Update.de_json(request.get_json(force=True), application.bot)
-    asyncio.get_event_loop().create_task(application.process_update(update))
-    return "OK", 200
+    update = request.get_json(force=True)
+    print(update)  # Debug uchun
 
+    if "message" in update:
+        chat_id = update["message"]["chat"]["id"]
+        text = update["message"].get("text", "")
+
+        if text == "/start":
+            send_message(chat_id, "Salom! Webhook ishlayapti 🚀")
+        else:
+            send_message(chat_id, f"Siz yubordingiz: {text}")
+
+    return "ok"
+
+# === Home route ===
 @app.route("/", methods=["GET"])
 def home():
     return "Bot ishga tushdi ✅", 200
 
+# === Helper function ===
+def send_message(chat_id, text):
+    requests.post(f"{BASE_URL}/sendMessage", json={"chat_id": chat_id, "text": text})
+
 # === Webhook o‘rnatish ===
-async def set_webhook():
-    url = f"{BASE_URL}/{TOKEN}"
-    await application.bot.set_webhook(url)
-    print(f"Webhook o‘rnatildi: {url}")
+def set_webhook():
+    webhook_url = f"https://forex-production.up.railway.app/{TOKEN}"
+    r = requests.get(f"{BASE_URL}/setWebhook", params={"url": webhook_url})
+    print(r.json())
 
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(set_webhook())
+    set_webhook()  # faqat bir marta ishga tushganda o‘rnatadi
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
