@@ -3,15 +3,14 @@ import os
 from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+import asyncio
 
-# .env fayldan yuklaymiz
+# .env fayldan o'zgaruvchilarni yuklash
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+RAILWAY_URL = os.getenv("RAILWAY_URL")
 
-if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN bo'sh! .env yoki Railway Variables'ni tekshir!")
-
-# Flask app
+# Flask app yaratamiz
 app = Flask(__name__)
 
 # Telegram bot application
@@ -25,7 +24,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(update.message.text)
 
-# Handlerlar
+# Handlerlarni qo'shish
 application.add_handler(CommandHandler("start", start))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
@@ -36,14 +35,17 @@ def webhook():
     application.update_queue.put_nowait(update)
     return "OK", 200
 
+# Home route
 @app.route("/", methods=["GET"])
 def home():
     return "Bot ishlayapti 🚀", 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8443))
-    railway_url = os.environ.get("RAILWAY_URL")
-    if not railway_url:
-        raise ValueError("RAILWAY_URL bo'sh! Railway environment variables'ga qo'shing.")
-    application.bot.set_webhook(f"https://{railway_url}/{BOT_TOKEN}")
+
+    async def set_webhook():
+        await application.bot.set_webhook(f"https://{RAILWAY_URL}/{BOT_TOKEN}")
+
+    asyncio.run(set_webhook())  # Webhook o‘rnatish
+
     app.run(host="0.0.0.0", port=port)
